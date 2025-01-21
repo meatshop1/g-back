@@ -1,38 +1,64 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from uuid import uuid4
+from django.conf import settings
+from django.contrib import admin
 
 
 class Promotion(models.Model):
     description = models.CharField(max_length=255)
     discount = models.FloatField()
 # Create your models here.
-class Product(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField()
-    price = models.DecimalField(max_digits=6, decimal_places=2)
-    inventory = models.IntegerField()
-    last_updated = models.DateTimeField(auto_now=True)
-    collection = models.ForeignKey('Collection', on_delete=models.PROTECT)
-    promotions = models.ManyToManyField(Promotion)
-
-class Customer(models.Model):
-    first_name = models.CharField(max_length=255)
-    last_name = models.CharField(max_length=255)
-    email = models.EmailField(unique=True)
-    phone = models.CharField(max_length=20)
-    birthdate = models.DateField(null=True)
-
-    class Meta:
-        db_table = 'shop_customer'
-        indexes = [
-            models.Index(fields=['last_name', 'first_name'])
-        ]
 
 class Collection(models.Model):
     title = models.CharField(max_length=255)
-    featured_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='+')
+    featured_product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='+', null=True, blank=True)
+
+    def __str__(self):
+        return self.title
     
+class Product(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField()
+    price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1, message='Price must be greater than 1')])
+    inventory = models.IntegerField(validators=[MinValueValidator(0)])
+    last_updated = models.DateTimeField(auto_now=True)
+    collection = models.ForeignKey(Collection, on_delete=models.PROTECT)
+    promotions = models.ManyToManyField(Promotion, blank=True)
+
+    def __str__(self):
+        return self.name
+
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='product-images')
+
+
+class Customer(models.Model):
+    phone = models.CharField(max_length=20)
+    birthdate = models.DateField(null=True)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+
+    @admin.display(ordering='user__first_name')
+    def first_name(self):
+        return self.user.first_name
+    
+    @admin.display(ordering='user__last_name') 
+    def last_name(self):
+        return self.user.last_name
+    
+    def email(self):
+        return self.user.email
+
+    def __str__(self):
+        return f'{self.user.first_name} {self.user.last_name}'
+    class Meta:
+        ordering = ['user__first_name', 'user__last_name']
+
+
 
 class Cart(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
 class Order(models.Model):
@@ -49,15 +75,19 @@ class Order(models.Model):
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT)
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name='orderitems')
     quantity = models.PositiveSmallIntegerField()
     unit_price = models.DecimalField(max_digits=6, decimal_places=2)
 
+
 class CartItem(models.Model):
-    cart = models.ForeignKey(Cart, on_delete=models.CASCADE)
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
-    quantity = models.PositiveSmallIntegerField()
+    quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)]) 
+
+    class Meta:
+        unique_together = [['cart', 'product']]
 
 class Address(models.Model):
     first_street = models.CharField(max_length=255)
@@ -66,3 +96,9 @@ class Address(models.Model):
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE)
+
+class Review(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
+    rating = models.PositiveSmallIntegerField(validators=[MaxValueValidator(5)])
+    description = models.TextField()
+    date = models.DateTimeField(auto_now_add=True)
