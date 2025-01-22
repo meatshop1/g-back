@@ -10,8 +10,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from shop.permissions import IsAdminOrReadOnly
-from .models import CartItem, Customer, Order, OrderItem, Product, Collection, ProductImage, Review, Cart
-from .serializers import AddCartItemSerializer, CartItemSerializer, CreateOrderSerializer, CustomerSerializer, OrderSerializer, ProductImageSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartSerializer, UpdateCartItemSerializer
+from .models import Address, CartItem, Customer, Order, OrderItem, Product, Collection, ProductImage, Review, Cart
+from .serializers import AddCartItemSerializer, AddressSerializer, CartItemSerializer, CreateOrderSerializer, CustomerSerializer, OrderSerializer, ProductImageSerializer, ProductSerializer, CollectionSerializer, ReviewSerializer, CartSerializer, UpdateCartItemSerializer
 from django.db.models import Count
 from rest_framework.mixins import CreateModelMixin, ListModelMixin, RetrieveModelMixin, UpdateModelMixin, DestroyModelMixin
 # Create your views here.
@@ -123,6 +123,7 @@ class OrderViewSet(ModelViewSet):
         return Order.objects.filter(customer_id=customer_id)
     
 class ProductImageViewSet(ModelViewSet):
+
     serializer_class = ProductImageSerializer
 
     def get_permissions(self):
@@ -135,3 +136,7 @@ class ProductImageViewSet(ModelViewSet):
 
     def get_queryset(self):
         return ProductImage.objects.filter(product_id=self.kwargs['product_pk'])
+    
+class AddressViewSet(ModelViewSet):
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
