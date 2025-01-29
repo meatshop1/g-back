@@ -138,6 +138,15 @@ class AddressSerializer(serializers.ModelSerializer):
     def get_google_map_url(self, address: Address):
         return f'https://www.google.com/maps/search/?api=1&query={address.latitude},{address.longitude}'
     
+    def validate(self, data):
+        has_address = data.get('first_street') and data.get('second_street') and data.get('neighborhood')
+        has_coordinates = data.get('latitude') and data.get('longitude')
+
+        if not has_address and not has_coordinates:
+            raise serializers.ValidationError('Either address or coordinates must be provided')
+        return data
+
+    
 class OrderSerializer(serializers.ModelSerializer):
     items = OrderItemSerializer(many=True)
     address = AddressSerializer()

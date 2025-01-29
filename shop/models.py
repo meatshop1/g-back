@@ -91,11 +91,12 @@ class CartItem(models.Model):
         unique_together = [['cart', 'product']]
 
 class Address(models.Model):
-    first_street = models.CharField(max_length=255)
-    second_street = models.CharField(max_length=255)
-    neighborhood = models.CharField(max_length=255)
-    latitude = models.FloatField(null=True)
-    longitude = models.FloatField(null=True)
+    first_street = models.CharField(max_length=255, blank=True, null=True)
+    second_street = models.CharField(max_length=255,  blank=True, null=True)
+    neighborhood = models.CharField(max_length=255, blank=True, null=True)
+    latitude = models.FloatField( blank=True, null=True)
+    longitude = models.FloatField( blank=True, null=True)
+
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
