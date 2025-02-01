@@ -12,13 +12,18 @@ class Promotion(models.Model):
 
 class Collection(models.Model):
     title = models.CharField(max_length=255)
+    title_ar = models.CharField(max_length=255, blank=True, null=True)
     featured_product = models.ForeignKey('Product', on_delete=models.CASCADE, related_name='+', null=True, blank=True)
 
     def __str__(self):
         return self.title
-    
+
+
 class Product(models.Model):
+    choices = [('kilo', 'Kilo'), ('quarter', 'Quarter'), ('half', 'Half'), ('full', 'Full')]
+    unit = models.CharField(max_length=8, choices=choices, default='kilo')
     name = models.CharField(max_length=255)
+    name_ar = models.CharField(max_length=255, blank=True, null=True)
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(1, message='Price must be greater than 1')])
     inventory = models.IntegerField(validators=[MinValueValidator(0)])
@@ -86,7 +91,9 @@ class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
     quantity = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)]) 
-
+    notes = models.TextField(blank=True, null=True)
+    choices = [('cow', 'Cow'), ('goat', 'Goat'), ('sheep', 'Sheep')]
+    animal = models.CharField(max_length=8, choices=choices, default='cow')
     class Meta:
         unique_together = [['cart', 'product']]
 

@@ -1,18 +1,18 @@
 from django.contrib import admin
 from django.contrib.contenttypes.admin import GenericTabularInline
 
-from .models import Collection, Customer, Order, OrderItem, Product, Promotion
+from .models import Collection, Customer, Order, OrderItem, Product, ProductImage, Promotion, CartItem
 from django.db.models import Count
 from django.core.validators import MinValueValidator
 
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ['name', 'price','inventory_status', 'collection_title']
+    list_display = ['name', 'price','inventory_status', 'collection_title', 'name_ar', 'unit']
     list_editable = ['price',]
     list_per_page = 10
     list_select_related = ['collection']
-    search_fields = ['name__istartswith']
+    search_fields = ['name__istartswith', 'collection__title__istartswith', 'name_ar__istartswith']
 
     def collection_title(self, product):
         return product.collection.title
@@ -47,7 +47,7 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(Collection)
 class CollectionAdmin(admin.ModelAdmin):
-    list_display = ['title', 'products_count']
+    list_display = ['title', 'products_count', 'title_ar']
 
     @admin.display(ordering='products_count')
     def products_count(self, collection):
@@ -58,6 +58,19 @@ class CollectionAdmin(admin.ModelAdmin):
             products_count= Count('product')
         )
     
+
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ['product', 'quantity', 'cart']
+    list_filter = ['cart']
+    list_per_page = 10
+
+@admin.register(ProductImage)
+class ProductImageAdmin(admin.ModelAdmin):
+    list_display = ['product', 'image']
+    list_filter = ['product']
+    list_per_page = 10
+    autocomplete_fields = ['product']
 
 # Register your models here.
 admin.site.register(OrderItem)

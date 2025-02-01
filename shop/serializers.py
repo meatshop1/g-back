@@ -7,7 +7,7 @@ from django.db import transaction
 class CollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Collection
-        fields = ['id', 'title', 'products_count']
+        fields = ['id', 'title', 'products_count', 'title_ar']
     products_count = serializers.IntegerField(read_only=True)
 
 
@@ -22,10 +22,10 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(many=True, read_only=True)
+    images = ProductImageSerializer(many=True)
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price', 'inventory', 'price_with_tax','description', 'collection', 'collection_id','images']
+        fields = ['id', 'name', 'price', 'inventory', 'price_with_tax','description', 'collection', 'collection_id','images', 'name_ar', 'unit',]
     price_with_tax = serializers.SerializerMethodField(method_name='get_price_with_tax')
     collection = serializers.StringRelatedField()
     collection_id = serializers.PrimaryKeyRelatedField(queryset=Collection.objects.all(), source='collection')
@@ -47,7 +47,7 @@ class ReviewSerializer(serializers.ModelSerializer):
 class SimpleProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price']
+        fields = ['id', 'name', 'price', 'unit']
 
 
 
@@ -56,7 +56,7 @@ class AddCartItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CartItem
-        fields = ['id' ,'product_id', 'quantity']
+        fields = ['id' ,'product_id', 'quantity', 'notes', 'animal']
 
     def validate_product_id(self, value):
         if not Product.objects.filter(pk=value).exists():
@@ -67,9 +67,13 @@ class AddCartItemSerializer(serializers.ModelSerializer):
         cart_id = self.context['cart_id']
         product_id = self.validated_data['product_id']
         quantity = self.validated_data['quantity']
+        notes = self.validated_data['notes']
+        animal = self.validated_data['animal']
         try:
             cart_item = CartItem.objects.get(cart_id=cart_id, product_id=product_id)
             cart_item.quantity += quantity
+            cart_item.notes = notes
+            cart_item.animal = animal
             cart_item.save()
             self.instance = cart_item
         except CartItem.DoesNotExist:
@@ -79,6 +83,7 @@ class AddCartItemSerializer(serializers.ModelSerializer):
 class CartItemSerializer(serializers.ModelSerializer):
     product = SimpleProductSerializer()
     total_price = serializers.SerializerMethodField(method_name='get_total_price')
+    notes = serializers.CharField(allow_blank=True, required=False)
 
     def get_total_price(self, cart_item: CartItem):
         return cart_item.product.price * cart_item.quantity
@@ -86,7 +91,7 @@ class CartItemSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = CartItem
-        fields = ['id' , 'product', 'quantity', 'total_price']
+        fields = ['id' , 'product', 'quantity', 'total_price', 'notes', 'animal']
 
 
 
@@ -106,12 +111,19 @@ class CartSerializer(serializers.ModelSerializer):
 class UpdateCartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
-        fields = ['quantity']
+        fields = ['quantity', 'notes', 'animal']
 
     def validate_quantity(self, value):
         if value < 1:
             raise serializers.ValidationError('Quantity must be greater than 0')
         return value
+    
+    def save(self, **kwargs):
+        self.instance.quantity = self.validated_data['quantity']
+        self.instance.notes = self.validated_data['notes']
+        self.instance.animal = self.validated_data['animal']
+        self.instance.save()
+        return self.instance
     
 
 class CustomerSerializer(serializers.ModelSerializer):
