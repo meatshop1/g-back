@@ -25,11 +25,11 @@ class ProductSerializer(serializers.ModelSerializer):
     images = ProductImageSerializer(many=True)
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price', 'inventory', 'price_with_tax','description', 'collection', 'collection_id','images', 'name_ar', 'unit',]
+        fields = ['id', 'name', 'price', 'inventory', 'price_with_tax','description', 'collection', 'collection_id','images', 'name_ar', 'unit', 'collection_ar']
     price_with_tax = serializers.SerializerMethodField(method_name='get_price_with_tax')
     collection = serializers.StringRelatedField()
     collection_id = serializers.PrimaryKeyRelatedField(queryset=Collection.objects.all(), source='collection')
-
+    collection_ar = serializers.StringRelatedField(source='collection.title_ar')
     def get_price_with_tax(self, product: Product):
         return product.price * Decimal(1.1)
     
@@ -45,9 +45,16 @@ class ReviewSerializer(serializers.ModelSerializer):
     
 
 class SimpleProductSerializer(serializers.ModelSerializer):
+    category_title = serializers.StringRelatedField(source='collection')
+    category_title_ar = serializers.StringRelatedField(source='collection.title_ar')
+    images = serializers.SerializerMethodField(method_name='get_images')
+
     class Meta:
         model = Product
-        fields = ['id', 'name', 'price', 'unit']
+        fields = ['id', 'name', 'price', 'unit', 'category_title', 'category_title_ar', 'name_ar', 'images']
+    
+    def get_images(self, product: Product):
+        return [image.image.url for image in product.images.all()]
 
 
 
@@ -136,9 +143,10 @@ class CustomerSerializer(serializers.ModelSerializer):
 
 class OrderItemSerializer(serializers.ModelSerializer):
     product = SimpleProductSerializer()
+    
     class Meta:
         model = OrderItem
-        fields = ['id', 'product', 'quantity', 'unit_price']
+        fields = ['id', 'product', 'quantity', 'unit_price', 'notes' ]
 
 class AddressSerializer(serializers.ModelSerializer):
     class Meta:
@@ -195,6 +203,7 @@ class CreateOrderSerializer(serializers.Serializer):
                     product = item.product,
                     unit_price = item.product.price,
                     quantity = item.quantity,
+                    notes = item.notes,
                 ) for item in cart_items
             ]
             OrderItem.objects.bulk_create(order_items)
