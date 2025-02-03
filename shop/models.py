@@ -105,6 +105,9 @@ class Address(models.Model):
     latitude = models.FloatField( blank=True, null=True)
     longitude = models.FloatField( blank=True, null=True)
 
+    def __str__(self):
+        return f'{self.first_street} {self.second_street} {self.neighborhood}'
+
 
 class Review(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='reviews')
