@@ -7,8 +7,7 @@ load_dotenv()
 
 
 DEBUG = False
-# after deploying to production, you should change the * in allowed_hosts to your domain name
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['django-app-env.eba-dnjkhspu.us-west-2.elasticbeanstalk.com']
 SECRET_KEY = os.environ['SECRET_KEY']
 
 DATABASES = {
