@@ -2,8 +2,10 @@ import os
 from .common import *
 import os
 from dotenv import load_dotenv
+import pymysql
 
 load_dotenv()
+
 
 DEBUG = False
 # after deploying to production, you should change the * in allowed_hosts to your domain name
