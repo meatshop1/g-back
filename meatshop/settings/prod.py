@@ -2,7 +2,6 @@ import os
 from .common import *
 import os
 from dotenv import load_dotenv
-import pymysql
 
 load_dotenv()
 

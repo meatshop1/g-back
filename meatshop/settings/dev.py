@@ -1,10 +1,11 @@
 from .common import *
 import os
 from dotenv import load_dotenv
-import pymysql
+
 
 
 load_dotenv()
+
 
 DEBUG = True
 SECRET_KEY = 'django-insecure-&r%wiycqoat+yr+$@z4zimi(e!2oxn!(*p8z=zbjagwv-6t12q'

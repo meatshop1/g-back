@@ -14,9 +14,8 @@ from datetime import timedelta
 from pathlib import Path
 import os
 from dotenv import load_dotenv
-import pymysql
 
-pymysql.install_as_MySQLdb()
+
 load_dotenv()
 
 
