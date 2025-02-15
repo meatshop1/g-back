@@ -7,7 +7,7 @@ load_dotenv()
 
 
 DEBUG = False
-ALLOWED_HOSTS = ['django-app-env.eba-dnjkhspu.us-west-2.elasticbeanstalk.com']
+ALLOWED_HOSTS = ['django-meatshop-env.eba-u4t3nqpc.me-south-1.elasticbeanstalk.com']
 SECRET_KEY = os.environ['SECRET_KEY']
 
 DATABASES = {

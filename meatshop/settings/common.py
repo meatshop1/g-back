@@ -204,7 +204,6 @@ MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/media/'
 
 # Static files URL for serving static content
 STATIC_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/static/'
-print(f'{STATIC_URL} is the static url')
 STATIC_ROOT = 'static/'
 
 COMPRESS_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
