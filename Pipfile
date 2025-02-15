@@ -11,6 +11,10 @@ djoser = "*"
 djangorestframework-simplejwt = "*"
 pillow = "*"
 django-cors-headers = "*"
+gunicorn = "*"
+waitress = "*"
+whitenoise = "*"
+uvicorn = "*"
 
 [dev-packages]
 
