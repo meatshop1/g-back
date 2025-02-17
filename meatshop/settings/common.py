@@ -86,6 +86,7 @@ WSGI_APPLICATION = 'meatshop.wsgi.application'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://main.d11tq7hracfr3j.amplifyapp.com/"
 ]
 
 AUTH_PASSWORD_VALIDATORS = [
