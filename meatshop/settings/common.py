@@ -84,10 +84,8 @@ SIMPLE_JWT = {
 
 WSGI_APPLICATION = 'meatshop.wsgi.application'
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "https://main.d11tq7hracfr3j.amplifyapp.com/"
-]
+CORS_ALLOW_ALL_ORIGINS = True
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
