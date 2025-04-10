@@ -22,7 +22,8 @@ class ProductImageSerializer(serializers.ModelSerializer):
 
 
 class ProductSerializer(serializers.ModelSerializer):
-    images = ProductImageSerializer(many=True)
+    #if you removed required=False there's a test case will fail
+    images = ProductImageSerializer(many=True, required=False)
     class Meta:
         model = Product
         fields = ['id', 'name', 'price', 'inventory', 'price_with_tax','description', 'collection', 'collection_id','images', 'name_ar', 'unit', 'collection_ar']
