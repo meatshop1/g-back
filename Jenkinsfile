@@ -22,11 +22,11 @@ pipeline {
                 '''
             }
         }
-            post {
-            always {
-                sh 'rm -rf venv'
-              }
-            }
+    }
 
+    post {
+        always {
+            sh 'rm -rf venv'
+        }
     }
 }
