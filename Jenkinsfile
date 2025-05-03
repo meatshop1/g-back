@@ -4,7 +4,7 @@ pipeline {
         VENV_DIR = 'venv'
         LOCAL_DB_NAME = 'meatshop'
         LOCAL_DB_HOST = 'localhost'
-        LOCAL_DB_USER = 'eladwy'
+        LOCAL_DB_USER = 'root'
         LOCAL_DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
         LOCAL_DB_PORT = '3306'
     }
@@ -29,7 +29,7 @@ pipeline {
                     fi
 
                     docker run --name test-mysql \
-                        -e MYSQL_ROOT_PASSWORD=secret \
+                        -e MYSQL_ROOT_PASSWORD=${LOCAL_DB_PASSWORD} \
                         -e MYSQL_DATABASE=meatshop \
                         -e MYSQL_USER=eladwy \
                         -e MYSQL_PASSWORD=${LOCAL_DB_PASSWORD} \
