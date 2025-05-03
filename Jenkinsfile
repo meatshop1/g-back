@@ -83,18 +83,22 @@ pipeline {
                 ])
             }
         }
-
         stage('SAST') {
             steps {
-                echo 'Running static code analysis...'
-                sh '''
-                    $SONAR_SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectKey=g-back \
-                        -Dsonar.sources=core/,tags/,likes/,meatshop/,shop/,Dockerfile/ \
-                        -Dsonar.host.url=http://192.168.1.83:9000 \
-                        -Dsonar.python.coverage.reportPaths=coverage.xml \
-                        -Dsonar.token=sqp_e4b42065beefe21022b0107aad6ce9fe3768d8fb \
-                '''
+                timeout(time: 120, unit: 'SECONDS') {
+                    echo 'Running static code analysis...'
+                    withSonarQubeEnv('SonarQube-backend') {
+                        sh '''
+                        $SONAR_SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectKey=g-back \
+                            -Dsonar.sources=core/,tags/,likes/,meatshop/,shop/,Dockerfile/ \
+                            -Dsonar.python.coverage.reportPaths=coverage.xml 
+                        '''
+                    }
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        waitForQualityGate abortPipeline: true
+                    }
+                }
             }
         }
     }
