@@ -7,7 +7,6 @@ pipeline {
         DB_HOST = 'localhost'
         DB_USER = 'eladwy'
         DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
-        
     }
     stages {
         stage('Installing Dependencies') {
@@ -32,7 +31,6 @@ pipeline {
                     export DB_USER=$DB_USER
                     export DB_PASSWORD=$DB_PASSWORD
                     
-                    
                     # Run Django tests
                     python manage.py test
                 '''
@@ -47,8 +45,11 @@ pipeline {
             echo 'Tests failed! Please check the logs for details.'
         }
         cleanup {
-            // Clean up the virtual environment to save disk space
-            sh 'rm -rf $VENV_DIR'
+            // Need to wrap in a node block to provide context
+            node {
+                echo 'Cleaning up the virtual environment...'
+                sh 'rm -rf $VENV_DIR'
+            }
         }
     }
 }
