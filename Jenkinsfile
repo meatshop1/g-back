@@ -23,7 +23,6 @@ pipeline {
         stage('Start MySQL') {
             steps {
                 sh '''
-                    # Remove any existing container with the same name
                     if [ $(docker ps -aq -f name=test-mysql) ]; then
                         docker rm -f test-mysql
                     fi
@@ -46,15 +45,33 @@ pipeline {
                 sh '''
                     . $VENV_DIR/bin/activate
 
-                    # Explicitly export environment variables for Django to see
                     export DB_NAME=$LOCAL_DB_NAME
                     export DB_HOST=$LOCAL_DB_HOST
                     export DB_USER=$LOCAL_DB_USER
                     export DB_PASSWORD=$LOCAL_DB_PASSWORD
                     export DB_PORT=$LOCAL_DB_PORT
 
-                    python manage.py test
+                    coverage run manage.py test
                 '''
+            }
+        }
+        stage('Code Coverage') {
+            steps {
+                echo 'Generating code coverage report...'
+                sh '''
+                    . $VENV_DIR/bin/activate
+                    coverage report
+                    coverage html -d coverage_html
+                '''
+                // Archive the HTML coverage report
+                publishHTML(target: [
+                    allowMissing: false,
+                    alwaysLinkToLastBuild: true,
+                    keepAll: true,
+                    reportDir: 'coverage_html',
+                    reportFiles: 'index.html',
+                    reportName: 'Code Coverage Report'
+                ])
             }
         }
     }
