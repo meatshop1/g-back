@@ -21,5 +21,15 @@ pipeline {
                 '''
             }
         }
+
+        stage('Run Tests') {
+            steps {
+                echo 'Running tests...'
+                sh '''
+                    . venv/bin/activate
+                    pytest --maxfail=1 --disable-warnings -q
+                '''
+            }
+        }
     }
 }
