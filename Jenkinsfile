@@ -3,10 +3,10 @@ pipeline {
     environment {
         VENV_DIR = 'venv'
         // Direct environment variables for database connection
-        DB_NAME = 'meatshop'
-        DB_HOST = 'localhost'
-        DB_USER = 'eladwy'
-        DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
+        LOCAL_DB_NAME = 'meatshop'
+        LOCAL_DB_HOST = 'localhost'
+        LOCAL_DB_USER = 'eladwy'
+        LOCAL_DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
     }
     stages {
         stage('Installing Dependencies') {
@@ -25,12 +25,7 @@ pipeline {
                 echo 'Running tests...'
                 sh '''
                     . $VENV_DIR/bin/activate
-                    # Export environment variables for Django
-                    export DB_NAME=$DB_NAME
-                    export DB_HOST=$DB_HOST
-                    export DB_USER=$DB_USER
-                    export DB_PASSWORD=$DB_PASSWORD
-                    
+            
                     # Run Django tests
                     python manage.py test
                 '''
