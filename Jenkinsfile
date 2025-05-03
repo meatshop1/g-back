@@ -36,7 +36,7 @@ pipeline {
                         -p 3306:3306 -d mysql:8.0
 
                     echo "Waiting for MySQL to be ready..."
-                    sleep 20
+                    sleep 60
                 '''
             }
         }
