@@ -52,7 +52,7 @@ pipeline {
                     export DB_PASSWORD=$LOCAL_DB_PASSWORD
                     export DB_PORT=$LOCAL_DB_PORT
 
-                    python run manage.py test
+                    python manage.py test
                 '''
             }
         }
