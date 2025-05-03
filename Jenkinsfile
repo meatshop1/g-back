@@ -59,7 +59,7 @@ pipeline {
         }
         stage('Code Coverage') {
             steps {
-                echo 'Generating code coverage report....'
+                echo 'Generating code coverage report...'
                 sh '''
                     . $VENV_DIR/bin/activate
                     export DB_NAME=$LOCAL_DB_NAME
