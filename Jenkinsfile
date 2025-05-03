@@ -86,7 +86,7 @@ pipeline {
         stage('SAST') {
             steps {
                 timeout(time: 120, unit: 'SECONDS') {
-                    echo 'Running static code analysis...'
+                    echo 'Running static code analysis....'
                     withSonarQubeEnv('SonarQube-backend') {
                         sh '''
                         $SONAR_SCANNER_HOME/bin/sonar-scanner \
@@ -98,6 +98,56 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         waitForQualityGate abortPipeline: true
                     }
+                }
+            }
+        }
+         stage('Building Docke Image'){
+            steps{
+                script {
+                    echo 'building docker image...'
+                    sh '''
+                        docker build -t eladwy/backend:$GIT_COMMIT .
+                    '''
+                }
+            }
+        }
+
+        stage('Trivy Vulnarability Scanner'){
+            steps {
+                sh '''
+                    trivy image eladwy/backend:$GIT_COMMIT \
+                            --severity LOW,MEDIUM \
+                            --exit-code 0 \
+                            --quiet \
+                            --format json -o trivy-success.json
+                        
+                    
+                        trivy image eladwy/backend:$GIT_COMMIT \
+                            --severity HIGH,CRITICAL \
+                            --exit-code 1 \
+                            --quiet \
+                            --format json -o trivy-fail.json
+                '''
+            }
+            post {
+                always {
+                    sh '''
+                        trivy convert \
+                            --format template --template "@/usr/local/share/trivy/templates/html.tpl" \
+                            --output trivy-image-MEDIUM-results.html trivy-success.json
+
+                        trivy convert \
+                            --format template --template "@/usr/local/share/trivy/templates/html.tpl" \
+                            --output trivy-image-CRITICAL-results.html trivy-fail.json
+
+                        trivy convert \
+                            --format template --template "@/usr/local/share/trivy/templates/junit.tpl" \
+                            --output trivy-image-MEDIUM-results.xml trivy-success.json
+
+                        trivy convert \
+                            --format template --template "@/usr/local/share/trivy/templates/junit.tpl" \
+                            --output trivy-image-CRITICAL-results.xml trivy-fail.json
+                    '''
                 }
             }
         }
