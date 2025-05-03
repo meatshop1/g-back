@@ -2,16 +2,14 @@ pipeline {
     agent any
 
     stages {
-        stages{
-            stage('Installing Dependencies'){
-                steps{
-                    script {
-                        echo 'Installing Python dependencies...'
-                        sh '''
-                            python -m pip install --upgrade pip
-                            pip install -r requirements.txt
-                        '''
-                    }
+        stage('Installing Dependencies') {
+            steps {
+                script {
+                    echo 'Installing Python dependencies...'
+                    sh '''
+                        python -m pip install --upgrade pip
+                        pip install -r requirements.txt
+                    '''
                 }
             }
         }
