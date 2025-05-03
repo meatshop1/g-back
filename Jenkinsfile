@@ -1,9 +1,8 @@
 pipeline{
-    
     agent any
 
     stages {
-         stage('Installing Dependencies'){
+        stage('Installing Dependencies'){
             steps{
                 script {
                     echo 'Installing Python dependencies...'
@@ -12,6 +11,7 @@ pipeline{
                         . venv/bin/activate
                         python3 -m pip install --upgrade pip
                         pip install -r requirements.txt
+                        pip install pytest  # Ensure pytest is installed
                     '''
                 }
             }
@@ -22,12 +22,11 @@ pipeline{
                     echo 'Running tests...'
                     sh '''
                         . venv/bin/activate
-                        pytest --maxfail=1 --disable-warnings -q
+                        pytest tests.py --maxfail=1 --disable-warnings -q
                     '''
                 }
             }
         }
-        
     }
 
     post {
