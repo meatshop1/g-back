@@ -23,6 +23,11 @@ pipeline {
         stage('Start MySQL') {
             steps {
                 sh '''
+                    # Remove any existing container with the same name
+                    if [ $(docker ps -aq -f name=test-mysql) ]; then
+                        docker rm -f test-mysql
+                    fi
+
                     docker run --name test-mysql \
                         -e MYSQL_ROOT_PASSWORD=secret \
                         -e MYSQL_DATABASE=meatshop \
