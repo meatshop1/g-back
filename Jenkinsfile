@@ -1,5 +1,8 @@
 pipeline{
     agent any
+     environment {
+        VENV_DIR = 'venv'
+    }
 
     stages {
         stage('Installing Dependencies'){
@@ -7,11 +10,10 @@ pipeline{
                 script {
                     echo 'Installing Python dependencies...'
                     sh '''
-                        python3 -m venv venv
-                        . venv/bin/activate
+                        python3 -m venv $VENV_DIR
+                        source $VENV_DIR/bin/activate
                         python3 -m pip install --upgrade pip
                         pip install -r requirements.txt
-                        pip install pytest  # Ensure pytest is installed
                     '''
                 }
             }
@@ -21,8 +23,8 @@ pipeline{
                 script {
                     echo 'Running tests...'
                     sh '''
-                        . venv/bin/activate
-                        pytest tests.py --maxfail=1 --disable-warnings -q
+                        source $VENV_DIR/bin/activate
+                         python manage.py test
                     '''
                 }
             }
@@ -31,11 +33,7 @@ pipeline{
 
     post {
         always {
-            echo 'Cleaning up...'
-            sh '''
-                echo "Cleaning up resources..."
-                rm -rf venv
-            '''
+            junit 'reports/**/*.xml'
         }
     }
 }
