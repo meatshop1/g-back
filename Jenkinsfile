@@ -2,7 +2,6 @@ pipeline {
     agent any
     environment {
         VENV_DIR = 'venv'
-        // Direct environment variables for database connection
         LOCAL_DB_NAME = 'meatshop'
         LOCAL_DB_HOST = 'localhost'
         LOCAL_DB_USER = 'eladwy'
@@ -25,8 +24,13 @@ pipeline {
                 echo 'Running tests...'
                 sh '''
                     . $VENV_DIR/bin/activate
-            
-                    # Run Django tests
+
+                    # Explicitly export environment variables for Django to see
+                    export DB_NAME=$LOCAL_DB_NAME
+                    export DB_HOST=$LOCAL_DB_HOST
+                    export DB_USER=$LOCAL_DB_USER
+                    export DB_PASSWORD=$LOCAL_DB_PASSWORD
+
                     python manage.py test
                 '''
             }
@@ -41,7 +45,11 @@ pipeline {
         }
         cleanup {
             echo 'Cleaning up the virtual environment...'
-            sh 'rm -rf $VENV_DIR'
+            sh '''
+                if [ -d "$VENV_DIR" ]; then
+                    rm -rf $VENV_DIR
+                fi
+            '''
         }
     }
 }
