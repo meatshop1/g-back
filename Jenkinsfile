@@ -3,7 +3,7 @@ pipeline {
     environment {
         VENV_DIR = 'venv'
         LOCAL_DB_NAME = 'meatshop'
-        LOCAL_DB_HOST = '127.0.0.1'
+        LOCAL_DB_HOST = 'localhost'
         LOCAL_DB_USER = 'eladwy'
         LOCAL_DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
         LOCAL_DB_PORT = '3306'
