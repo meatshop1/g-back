@@ -6,6 +6,7 @@ pipeline {
         LOCAL_DB_HOST = 'localhost'
         LOCAL_DB_USER = 'eladwy'
         LOCAL_DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
+        LOCAL_DB_PORT = '5432'
     }
     stages {
         stage('Installing Dependencies') {
@@ -30,6 +31,7 @@ pipeline {
                     export DB_HOST=$LOCAL_DB_HOST
                     export DB_USER=$LOCAL_DB_USER
                     export DB_PASSWORD=$LOCAL_DB_PASSWORD
+                    export DB_PORT=$LOCAL_DB_PORT
 
                     python manage.py test
                 '''
