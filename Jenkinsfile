@@ -8,6 +8,8 @@ pipeline{
                 script {
                     echo 'Installing Python dependencies...'
                     sh '''
+                        python3 -m venv venv
+                        source venv/bin/activate
                         python3 -m pip install --upgrade pip
                         pip install -r requirements.txt
                     '''
@@ -20,7 +22,10 @@ pipeline{
     post {
         always {
             echo 'Cleaning up...'
-            sh 'echo "Cleaning up resources..."'
+            sh '''
+                echo "Cleaning up resources..."
+                rm -rf venv
+            '''
         }
     }
 }
