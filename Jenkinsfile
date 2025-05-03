@@ -3,10 +3,10 @@ pipeline {
     environment {
         VENV_DIR = 'venv'
         LOCAL_DB_NAME = 'meatshop'
-        LOCAL_DB_HOST = 'localhost'
+        LOCAL_DB_HOST = '127.0.0.1'
         LOCAL_DB_USER = 'eladwy'
         LOCAL_DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
-        LOCAL_DB_PORT = '5432'
+        LOCAL_DB_PORT = '3306'
     }
     stages {
         stage('Installing Dependencies') {
@@ -17,6 +17,21 @@ pipeline {
                     . $VENV_DIR/bin/activate
                     python3 -m pip install --upgrade pip
                     pip install -r requirements.txt
+                '''
+            }
+        }
+        stage('Start MySQL') {
+            steps {
+                sh '''
+                    docker run --name test-mysql \
+                        -e MYSQL_ROOT_PASSWORD=secret \
+                        -e MYSQL_DATABASE=meatshop \
+                        -e MYSQL_USER=eladwy \
+                        -e MYSQL_PASSWORD=${LOCAL_DB_PASSWORD} \
+                        -p 3306:3306 -d mysql:5.7
+
+                    echo "Waiting for MySQL to be ready..."
+                    sleep 20
                 '''
             }
         }
