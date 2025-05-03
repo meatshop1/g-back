@@ -18,7 +18,7 @@ pipeline {
                     . $VENV_DIR/bin/activate
                     python3 -m pip install --upgrade pip
                     pip install coverage 
-                    python3.11 -m pip install pip-audit
+                    python3 -m pip install pip-audit
                     pip install -r requirements.txt
                 '''
             }
