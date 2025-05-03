@@ -61,6 +61,12 @@ pipeline {
                 echo 'Generating code coverage report...'
                 sh '''
                     . $VENV_DIR/bin/activate
+                    export DB_NAME=$LOCAL_DB_NAME
+                    export DB_HOST=$LOCAL_DB_HOST
+                    export DB_USER=$LOCAL_DB_USER
+                    export DB_PASSWORD=$LOCAL_DB_PASSWORD
+                    export DB_PORT=$LOCAL_DB_PORT
+
                     coverage run manage.py test
                     coverage report
                     coverage html -d coverage_html
