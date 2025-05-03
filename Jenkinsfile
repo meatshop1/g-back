@@ -2,15 +2,14 @@ pipeline {
     agent any
 
     stages {
-        stage('Installing Dependencies') {
+        stage('Setup Python Environment') {
             steps {
-                script {
-                    echo 'Installing Python dependencies...'
-                    sh '''
-                        python3 -m pip install --upgrade pip
-                        python3 -m pip install -r requirements.txt
-                    '''
-                }
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    ./venv/bin/pip install --upgrade pip
+                    ./venv/bin/pip install -r requirements.txt
+                '''
             }
         }
 
@@ -19,7 +18,7 @@ pipeline {
                 echo 'Running tests...'
                 sh '''
                     . venv/bin/activate
-                    pytest --maxfail=1 --disable-warnings -q
+                    ./venv/bin/pytest --maxfail=1 --disable-warnings -q
                 '''
             }
         }
