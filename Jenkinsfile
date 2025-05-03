@@ -45,11 +45,8 @@ pipeline {
             echo 'Tests failed! Please check the logs for details.'
         }
         cleanup {
-            // Need to wrap in a node block to provide context
-            node {
-                echo 'Cleaning up the virtual environment...'
-                sh 'rm -rf $VENV_DIR'
-            }
+            echo 'Cleaning up the virtual environment...'
+            sh 'rm -rf $VENV_DIR'
         }
     }
 }
