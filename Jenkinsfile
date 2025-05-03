@@ -18,8 +18,19 @@ pipeline {
                     . $VENV_DIR/bin/activate
                     python3 -m pip install --upgrade pip
                     pip install coverage 
+                    python3.11 -m pip install pip-audit
                     pip install -r requirements.txt
                 '''
+            }
+        }
+        stage('Audit Dependencies') {
+            steps {
+                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                    sh '''
+                        . venv/bin/activate
+                        pip-audit > pip-audit-report.txt
+                    '''
+                }
             }
         }
         stage('Start MySQL') {
@@ -114,20 +125,22 @@ pipeline {
 
         stage('Trivy Vulnarability Scanner'){
             steps {
-                sh '''
-                    trivy image eladwy/backend:$GIT_COMMIT \
-                            --severity LOW,MEDIUM \
-                            --exit-code 0 \
-                            --quiet \
-                            --format json -o trivy-success.json
-                        
-                    
-                        trivy image eladwy/backend:$GIT_COMMIT \
-                            --severity HIGH,CRITICAL \
-                            --exit-code 1 \
-                            --quiet \
-                            --format json -o trivy-fail.json
-                '''
+                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                       sh '''
+                            trivy image eladwy/backend:$GIT_COMMIT \
+                                    --severity LOW,MEDIUM \
+                                    --exit-code 0 \
+                                    --quiet \
+                                    --format json -o trivy-success.json
+                                
+                            
+                                trivy image eladwy/backend:$GIT_COMMIT \
+                                    --severity HIGH,CRITICAL \
+                                    --exit-code 1 \
+                                    --quiet \
+                                    --format json -o trivy-fail.json
+                        '''
+                    }
             }
             post {
                 always {
