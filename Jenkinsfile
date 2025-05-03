@@ -70,6 +70,7 @@ pipeline {
 
                     coverage run manage.py test
                     coverage report
+                    coverage xml
                     coverage html -d coverage_html
                 '''
                 publishHTML(target: [
