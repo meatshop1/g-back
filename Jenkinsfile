@@ -7,6 +7,7 @@ pipeline {
         LOCAL_DB_USER = 'root'
         LOCAL_DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
         LOCAL_DB_PORT = '3306'
+        SONAR_SCANNER_HOME = tool 'sonarqube-scanner';
     }
     stages {
         stage('Installing Dependencies') {
@@ -79,6 +80,19 @@ pipeline {
                     reportFiles: 'index.html',
                     reportName: 'Code Coverage Report'
                 ])
+            }
+        }
+
+        stage('SAST') {
+            steps {
+                echo 'Running static code analysis...'
+                sh '''
+                    $SONAR_SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectKey=g-back \
+                        -Dsonar.sources=. \
+                        -Dsonar.host.url=http://192.168.1.83:9000 \
+                        -Dsonar.token=sqp_e4b42065beefe21022b0107aad6ce9fe3768d8fb \
+                '''
             }
         }
     }
