@@ -28,7 +28,7 @@ pipeline {
                         -e MYSQL_DATABASE=meatshop \
                         -e MYSQL_USER=eladwy \
                         -e MYSQL_PASSWORD=${LOCAL_DB_PASSWORD} \
-                        -p 3306:3306 -d mysql:5.7
+                        -p 3306:3306 -d mysql:8.0
 
                     echo "Waiting for MySQL to be ready..."
                     sleep 20
