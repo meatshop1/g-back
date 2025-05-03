@@ -42,22 +42,29 @@ pipeline {
         }
         stage('Running Tests') {
             steps {
+                withEnv([
+                    "DB_NAME=${env.LOCAL_DB_NAME}",
+                    "DB_HOST=${env.LOCAL_DB_HOST}",
+                    "DB_USER=${env.LOCAL_DB_USER}",
+                    "DB_PASSWORD=${env.LOCAL_DB_PASSWORD}",
+                    "DB_PORT=${env.LOCAL_DB_PORT}"
+                ])
                 echo 'Running tests...'
                 sh '''
                     . $VENV_DIR/bin/activate
-
-                    export DB_NAME=$LOCAL_DB_NAME
-                    export DB_HOST=$LOCAL_DB_HOST
-                    export DB_USER=$LOCAL_DB_USER
-                    export DB_PASSWORD=$LOCAL_DB_PASSWORD
-                    export DB_PORT=$LOCAL_DB_PORT
-
                     python manage.py test
                 '''
             }
         }
         stage('Code Coverage') {
             steps {
+                 withEnv([
+                    "DB_NAME=${env.LOCAL_DB_NAME}",
+                    "DB_HOST=${env.LOCAL_DB_HOST}",
+                    "DB_USER=${env.LOCAL_DB_USER}",
+                    "DB_PASSWORD=${env.LOCAL_DB_PASSWORD}",
+                    "DB_PORT=${env.LOCAL_DB_PORT}"
+                ])
                 echo 'Generating code coverage report...'
                 sh '''
                     . $VENV_DIR/bin/activate
