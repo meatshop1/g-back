@@ -180,6 +180,7 @@ pipeline {
             }
             steps{
                 script{
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         sshagent(['aws-dev-deploy']){
                             sh '''
                                 ssh -o StrictHostKeyChecking=no ubuntu@ec2-157-175-219-194.me-south-1.compute.amazonaws.com '
@@ -208,7 +209,9 @@ pipeline {
                                         -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
                                 '
                         '''
+                     }
                     }
+
                 }
             }
         } 
