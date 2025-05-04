@@ -173,6 +173,44 @@ pipeline {
                         '''
                     }
                 }
+        }
+         stage('Deploy to aws'){
+            when{
+                branch 'features'
+            }
+            steps{
+                script{
+                        sshagent(['aws-dev-deploy']){
+                            sh """
+                                ssh -o StrictHostKeyChecking=no ubuntu@157.175.219.194 '
+                                    sudo docker image prune -a -f
+                                    sudo docker network create meatshop-net
+                                    sudo docker rm -f $(sudo docker ps -q)
+                                    if docker ps -a | grep -q "mymysql"; then
+                                        echo "Container Found, Stopping..."
+                                        docker stop "mymysql" && docker rm "mymysql"
+                                        echo "Container stopped and removed"
+                                    fi
+                                    docker run -d --name mymysql --network meatshop-net -e MYSQL_ROOT_PASSWORD=mypass -e MYSQL_DATABASE=meatshop -p 3306:3306 -v mysql_data:/var/lib/mysql mysql
+
+                                    if sudo docker ps -a | grep -q "backend"; then
+                                        echo "Container Found, Stopping..."
+                                        sudo docker stop "backend" && sudo docker rm "backend"
+                                        echo "Container stopped and removed"
+                                    fi
+                                    sudo docker run -d \
+                                        --network meatshop-net \
+                                        -e DB_NAME=${LOCAL_DB_NAME} \
+                                        -e DB_PORT=${LOCAL_DB_PORT} \
+                                        -e LOCAL_DB_HOST=mymysql \
+                                        -e LOCAL_DB_USER=${LOCAL_DB_USER} \
+                                        -e LOCAL_DB_PASSWORD=${LOCAL_DB_PASSWORD} \
+                                        -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
+                                '
+                        """
+                    }
+                }
+            }
         } 
     }
     post {
