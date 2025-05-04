@@ -226,7 +226,7 @@ pipeline {
                     sh 'git clone -b main https://github.com/abdelrahman-eladwy/meatshop-k8s.git'
                     dir('meatshop-k8s') {
                         sh '''
-                            echo "1234"
+                            echo "12345"
                             git checkout main
                             git checkout -b feature$BUILD_ID
                             sed -E -i "s-(eladwy|borhom11)/backend:.*-eladwy/backend:$GIT_COMMIT-g" backend/deployment.yaml
