@@ -8,6 +8,7 @@ pipeline {
         LOCAL_DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
         LOCAL_DB_PORT = '3306'
         SONAR_SCANNER_HOME = tool 'sonarqube-scanner';
+        GITHUB_TOKEN = credentials('git_hub_token'); 
     }
     stages {
         stage('Installing Dependencies') {
@@ -214,7 +215,57 @@ pipeline {
 
                 }
             }
-        } 
+        }
+        stage('K8S Update Image Tag') {
+            when {
+                branch 'PR*'
+            }
+            steps {
+                script {
+                    echo 'updating image tag in k8s...'
+                    sh 'git clone -b main https://github.com/abdelrahman-eladwy/meatshop-k8s.git'
+                    dir('meatshop-k8s') {
+                        sh '''
+                            echo "1234"
+                            git checkout main
+                            git checkout -b feature$BUILD_ID
+                            sed -E -i "s-(eladwy|borhom11)/backend:.*-eladwy/backend:$GIT_COMMIT-g" backend/deployment.yaml
+                            cat frontend/deployment.yaml
+
+                            git config --global user.email "abdoahmed32522@gmail.com"
+                            git remote set-url origin https://$GITHUB_TOKEN@github.com/abdelrahman-eladwy/meatshop-k8s.git
+                            git add .
+                            git commit -m "updating image tag to $GIT_COMMIT"
+                            git push -u origin feature$BUILD_ID
+                        '''
+                    }
+                }
+            }
+        }
+
+        stage('K8S - Raise PR') {
+            when {
+                branch 'PR*'
+            }
+            steps {
+                script {
+                    def branchName = "feature${BUILD_ID}"
+                    sh """
+                        curl -L \\
+                            -X POST \\
+                            -H "Accept: application/vnd.github+json" \\
+                            -H "Authorization: Bearer \$GITHUB_TOKEN" \\
+                            -H "X-GitHub-Api-Version: 2022-11-28" \\
+                            https://api.github.com/repos/abdelrahman-eladwy/meatshop-k8s/pulls \\
+                            -d '{"title":"Update docker image to latest version","body":"Automated PR to update the backend image tag to commit $GIT_COMMIT","head":"${branchName}","base":"main"}'
+                    """
+                }
+            }
+        }
+
+
+
+
     }
     post {
         success {
