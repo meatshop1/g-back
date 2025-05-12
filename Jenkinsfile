@@ -21,6 +21,7 @@ pipeline {
                     pip install coverage 
                     python3 -m pip install pip-audit
                     pip install -r requirements.txt
+                    python3 -m pip install drf-spectacular
                 '''
             }
         }
@@ -184,7 +185,7 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         sshagent(['aws-dev-deploy']){
                             sh '''
-                                ssh -o StrictHostKeyChecking=no ubuntu@ec2-157-175-219-194.me-south-1.compute.amazonaws.com '
+                                ssh -o StrictHostKeyChecking=no ubuntu@ec2-157-175-65-83.me-south-1.compute.amazonaws.com '
                                     sudo docker image prune -a -f
                                     sudo docker network create meatshop-net
                                     sudo docker rm -f $(sudo docker ps -q)
@@ -260,6 +261,26 @@ pipeline {
                             -d '{"title":"Update docker image to latest version","body":"Automated PR to update the backend image tag to commit $GIT_COMMIT","head":"${branchName}","base":"main"}'
                     """
                 }
+            }
+        }
+
+        stage('DAST - OWASP ZAP') {
+            when {
+                branch 'PR*'
+            }
+            steps {
+                sh '''
+                    echo Trigger
+                    chmod 777 $(pwd)
+                    docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+                        -t http://ec2-157-175-65-83.me-south-1.compute.amazonaws.com/schema/?format=json \
+                        -r zap_report.html \
+                        -f openapi \
+                        -w zap_report.md \
+                        -x zap_report.xml \
+                        -J zap_report.json \
+                        -c zap_ignore_rules
+                '''
             }
         }
 
