@@ -177,60 +177,43 @@ pipeline {
                 }
         }
          stage('Deploy to aws'){
-    when{
-        branch 'features'
-    }
-    steps{
-        script{
-            catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                sshagent(['aws-dev-deploy']){
-                    sh '''
-                        # Ensure a clean slate and create network first
-                        ssh -o StrictHostKeyChecking=no ubuntu@ec2-157-175-65-83.me-south-1.compute.amazonaws.com '
-                            # Always recreate the network to ensure it exists
-                            sudo docker network rm meatshop-net || true
-                            sudo docker network create meatshop-net
+            when{
+                branch 'features'
+            }
+            steps {
+                script {
+                    sshagent(['aws-dev-deploy']) {
+                        sh """
+                            ssh -o StrictHostKeyChecking=no ubuntu@157.175.65.83'
+                                sudo docker image prune -a -f
+                                sudo docker network create meatshop-net
+                                sudo docker rm -f $(sudo docker ps -q)
+                                if docker ps -a | grep -q "mymysql"; then
+                                    echo "Container Found, Stopping..."
+                                    docker stop "mymysql" && docker rm "mymysql"
+                                    echo "Container stopped and removed"
+                                fi
+                                docker run -d --name mymysql --network meatshop-net -e MYSQL_ROOT_PASSWORD=mypass -e MYSQL_DATABASE=meatshop -p 3306:3306 -v mysql_data:/var/lib/mysql mysql
 
-                            # Stop and remove any existing containers
-                            sudo docker stop mymysql || true
-                            sudo docker stop backend || true
-                            sudo docker rm mymysql || true
-                            sudo docker rm backend || true
-
-                            # Remove dangling volumes and images
-                            sudo docker system prune -af --volumes || true
-
-                            # Start MySQL Container with reliable configuration
-                            sudo docker run -d \
-                                --name mymysql \
-                                --network meatshop-net \
-                                -e MYSQL_ROOT_PASSWORD=mypass \
-                                -e MYSQL_DATABASE=meatshop \
-                                -p 3306:3306 \
-                                -v mysql_data:/var/lib/mysql \
-                                mysql:8.0
-
-                            # Wait for MySQL to be ready
-                            sleep 45
-
-                            # Start Backend Container
-                            sudo docker run -d \
-                                --name backend \
-                                --network meatshop-net \
-                                -e DB_NAME=meatshop \
-                                -e DB_PORT=3306 \
-                                -e LOCAL_DB_HOST=mymysql \
-                                -e LOCAL_DB_USER=root \
-                                -e LOCAL_DB_PASSWORD=mypass \
-                                -p 80:8000 \
-                                eladwy/backend:$GIT_COMMIT
-                        '
-                    '''
+                                if sudo docker ps -a | grep -q "backend"; then
+                                    echo "Container Found, Stopping..."
+                                    sudo docker stop "backend" && sudo docker rm "backend"
+                                    echo "Container stopped and removed"
+                                fi
+                                sudo docker run -d \
+                                    --network meatshop-net \
+                                    -e DB_NAME=${LOCAL_DB_NAME} \
+                                    -e DB_PORT=${LOCAL_DB_PORT} \
+                                    -e LOCAL_DB_HOST=mymysql \
+                                    -e LOCAL_DB_USER=${LOCAL_DB_USER} \
+                                    -e LOCAL_DB_PASSWORD=mypass \
+                                    -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
+                            '
+                        """
+                    }
                 }
             }
         }
-    }
-}
         stage('K8S Update Image Tag') {
             when {
                 branch 'PR*'
