@@ -208,7 +208,7 @@ pipeline {
                                     echo \\"Container stopped and removed\\"
                                 fi
                                 
-                                sudo docker run -d --network meatshop-net -e DB_NAME=meatshop -e DB_PORT=3306 -e DB_HOST=mymysql -e DB_USER=root -e DB_PASSWORD=mypass -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
+                                sudo docker run -d --network meatshop-net -e LOCAL_DB_NAME=meatshop -e LOCAL_DB_PORT=3306 -e LOCAL_DB_HOST=mymysql -e LOCAL_DB_USER=root -e LOCAL_DB_PASSWORD=mypass -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
                             "
                         '''
                     }
@@ -221,7 +221,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo 'updating image tag in k8s..'
+                    echo 'updating image tag in k8s...'
                     sh 'git clone -b main https://github.com/abdelrahman-eladwy/meatshop-k8s.git'
                     dir('meatshop-k8s') {
                         sh '''
@@ -276,8 +276,7 @@ pipeline {
                         -f openapi \
                         -w zap_report.md \
                         -x zap_report.xml \
-                        -J zap_report.json \
-                        -c zap_ignore_rules
+                        -J zap_report.json
                 '''
             }
         }
@@ -302,7 +301,7 @@ pipeline {
             echo 'Tests failed! Please check the logs for details.'
         }
         cleanup {
-            echo 'Cleaning up the virtual environment..'
+            echo 'Cleaning up the virtual environment...'
             sh '''
                 if [ -d "$VENV_DIR" ]; then
                     rm -rf $VENV_DIR
