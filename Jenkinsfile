@@ -271,7 +271,7 @@ pipeline {
                     echo Trigger
                     chmod 777 $(pwd)
                     docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
-                        -t http://ec2-157-175-65-83.me-south-1.compute.amazonaws.com/schema/?format=json \
+                        -t http://157.175.65.83/schema/?format=json \
                         -r zap_report.html \
                         -f openapi \
                         -w zap_report.md \
