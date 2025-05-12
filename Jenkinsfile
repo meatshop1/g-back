@@ -183,7 +183,7 @@ pipeline {
             steps {
                 script {
                     sshagent(['aws-dev-deploy']) {
-                        sh """
+                        sh"""
                             ssh -o StrictHostKeyChecking=no ubuntu@157.175.65.83'
                                 sudo docker image prune -a -f
                                 sudo docker network create meatshop-net
