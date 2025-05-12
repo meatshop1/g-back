@@ -302,7 +302,7 @@ pipeline {
             echo 'Tests failed! Please check the logs for details.'
         }
         cleanup {
-            echo 'Cleaning up the virtual environment...'
+            echo 'Cleaning up the virtual environment..'
             sh '''
                 if [ -d "$VENV_DIR" ]; then
                     rm -rf $VENV_DIR
