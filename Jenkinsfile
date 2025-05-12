@@ -185,35 +185,47 @@ pipeline {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                         sshagent(['aws-dev-deploy']){
                             sh '''
+                                # Ensure network exists
                                 ssh -o StrictHostKeyChecking=no ubuntu@ec2-157-175-65-83.me-south-1.compute.amazonaws.com '
-                                    sudo docker image prune -a -f || true
-                                    sudo docker rm -f $(sudo docker ps -q) || true
-                                    if docker ps -a | grep -q "mymysql"; then
-                                        echo "Container Found, Stopping..."
-                                        docker stop "mymysql" && docker rm "mymysql"
-                                        echo "Container stopped and removed"
-                                    fi
-                                    docker run -d --name mymysql --network meatshop-net -e MYSQL_ROOT_PASSWORD=mypass -e MYSQL_DATABASE=meatshop -p 3306:3306 -v mysql_data:/var/lib/mysql mysql
+                                    # Create network if it doesn't exist
+                                    sudo docker network inspect meatshop-net >/dev/null 2>&1 || \
+                                    sudo docker network create meatshop-net
 
-                                    if sudo docker ps -a | grep -q "backend"; then
-                                        echo "Container Found, Stopping..."
-                                        sudo docker stop "backend" 2>/dev/null || true
-                                        sudo docker rm "backend" 2>/dev/null || true
-                                        echo "Container stopped and removed"
-                                    fi
+                                    # Prune unused resources
+                                    sudo docker system prune -af --volumes || true
+
+                                    # Stop and remove existing containers
+                                    sudo docker stop mymysql backend || true
+                                    sudo docker rm mymysql backend || true
+
+                                    # Start MySQL Container
                                     sudo docker run -d \
+                                        --name mymysql \
                                         --network meatshop-net \
-                                        -e DB_NAME=${LOCAL_DB_NAME} \
-                                        -e DB_PORT=${LOCAL_DB_PORT} \
-                                        -e LOCAL_DB_HOST=mymysql \
-                                        -e LOCAL_DB_USER=${LOCAL_DB_USER} \
-                                        -e LOCAL_DB_PASSWORD=${LOCAL_DB_PASSWORD} \
-                                        -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
-                                '
-                        '''
-                     }
-                    }
+                                        -e MYSQL_ROOT_PASSWORD=mypass \
+                                        -e MYSQL_DATABASE=meatshop \
+                                        -p 3306:3306 \
+                                        -v mysql_data:/var/lib/mysql \
+                                        mysql:8.0
 
+                                    # Wait for MySQL to be ready
+                                    sleep 30
+
+                                    # Start Backend Container
+                                    sudo docker run -d \
+                                        --name backend \
+                                        --network meatshop-net \
+                                        -e DB_NAME=meatshop \
+                                        -e DB_PORT=3306 \
+                                        -e LOCAL_DB_HOST=mymysql \
+                                        -e LOCAL_DB_USER=root \
+                                        -e LOCAL_DB_PASSWORD=mypass \
+                                        -p 80:8000 \
+                                        eladwy/backend:$GIT_COMMIT
+                                '
+                            '''
+                        }
+                    }
                 }
             }
         }
