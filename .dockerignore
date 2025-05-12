@@ -1,1 +1,21 @@
+# Ignore everything by default
+**
+
+# Whitelist only what's needed
+!core/
+!likes/
+!shop/
+!meatshop/
+!tags/
+!manage.py
+!Pipfile
+!Pipfile.lock
+!requirements.txt
+!Dockerfile
+!.dockerignore
+
+# Ignore secrets and dev files
 .env
+*.log
+pycache/
+*.pyc

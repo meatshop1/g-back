@@ -186,9 +186,9 @@ pipeline {
                         sshagent(['aws-dev-deploy']){
                             sh '''
                                 ssh -o StrictHostKeyChecking=no ubuntu@ec2-157-175-65-83.me-south-1.compute.amazonaws.com '
-                                    sudo docker image prune -a -f
-                                    sudo docker network create meatshop-net
-                                    sudo docker rm -f $(sudo docker ps -q)
+                                    sudo docker image prune -a -f || true
+                                    sudo docker network create meatshop-net || true
+                                    sudo docker rm -f $(sudo docker ps -q) || true
                                     if docker ps -a | grep -q "mymysql"; then
                                         echo "Container Found, Stopping..."
                                         docker stop "mymysql" && docker rm "mymysql"
