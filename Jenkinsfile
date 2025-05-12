@@ -221,7 +221,7 @@ pipeline {
             }
             steps {
                 script {
-                    echo 'updating image tag in k8s...'
+                    echo 'updating image tag in k8s..'
                     sh 'git clone -b main https://github.com/abdelrahman-eladwy/meatshop-k8s.git'
                     dir('meatshop-k8s') {
                         sh '''
