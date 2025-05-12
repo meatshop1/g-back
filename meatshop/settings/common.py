@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'likes',
     'core',
     'storages',
+    'drf_spectacular'
 ]
 
 MIDDLEWARE = [
