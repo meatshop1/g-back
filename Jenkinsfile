@@ -182,33 +182,34 @@ pipeline {
             }
             steps {
                 script {
+                    def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                     sshagent(['aws-dev-deploy']) {
-                        sh'''
-                            ssh -o StrictHostKeyChecking=no ubuntu@157.175.65.83 '
+                        sh '''
+                            ssh -o StrictHostKeyChecking=no ubuntu@157.175.65.83 "
                                 sudo docker image prune -a -f
                                 sudo docker network create meatshop-net || true
                                 # Only remove containers if they exist
-                                CONTAINERS=$(sudo docker ps -q)
-                                if [ ! -z "$CONTAINERS" ]; then
-                                    sudo docker rm -f $CONTAINERS
+                                CONTAINERS=\$(sudo docker ps -q)
+                                if [ ! -z \"\$CONTAINERS\" ]; then
+                                    sudo docker rm -f \$CONTAINERS
                                 fi
                                 
-                                if docker ps -a | grep -q "mymysql"; then
-                                    echo "Container Found, Stopping..."
-                                    docker stop "mymysql" && docker rm "mymysql"
-                                    echo "Container stopped and removed"
+                                if docker ps -a | grep -q \\"mymysql\\"; then
+                                    echo \\"Container Found, Stopping...\\"
+                                    docker stop \\"mymysql\\" && docker rm \\"mymysql\\"
+                                    echo \\"Container stopped and removed\\"
                                 fi
                                 
                                 docker run -d --name mymysql --network meatshop-net -e MYSQL_ROOT_PASSWORD=mypass -e MYSQL_DATABASE=meatshop -p 3306:3306 -v mysql_data:/var/lib/mysql mysql
                                 
-                                if sudo docker ps -a | grep -q "backend"; then
-                                    echo "Container Found, Stopping..."
-                                    sudo docker stop "backend" && sudo docker rm "backend"
-                                    echo "Container stopped and removed"
+                                if sudo docker ps -a | grep -q \\"backend\\"; then
+                                    echo \\"Container Found, Stopping...\\"
+                                    sudo docker stop \\"backend\\" && sudo docker rm \\"backend\\"
+                                    echo \\"Container stopped and removed\\"
                                 fi
                                 
                                 sudo docker run -d --network meatshop-net -e DB_NAME=meatshop -e DB_PORT=3306 -e DB_HOST=mymysql -e DB_USER=root -e DB_PASSWORD=mypass -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
-                            '
+                            "
                         '''
                     }
                 }
