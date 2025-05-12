@@ -197,7 +197,8 @@ pipeline {
 
                                     if sudo docker ps -a | grep -q "backend"; then
                                         echo "Container Found, Stopping..."
-                                        sudo docker stop "backend" && sudo docker rm "backend"
+                                        sudo docker stop "backend" 2>/dev/null || true
+                                        sudo docker rm "backend" 2>/dev/null || true
                                         echo "Container stopped and removed"
                                     fi
                                     sudo docker run -d \
