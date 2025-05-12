@@ -207,14 +207,7 @@ pipeline {
                                     echo "Container stopped and removed"
                                 fi
                                 
-                                sudo docker run -d \
-                                    --network meatshop-net \
-                                    -e DB_NAME=meatshop \
-                                    -e DB_PORT=3306 \
-                                    -e DB_HOST=mymysql \
-                                    -e DB_USER=root \
-                                    -e DB_PASSWORD=mypass \
-                                    -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
+                                sudo docker run -d --network meatshop-net -e DB_NAME=meatshop -e DB_PORT=3306 -e DB_HOST=mymysql -e DB_USER=root -e DB_PASSWORD=mypass -p 80:8000 --name backend eladwy/backend:${GIT_COMMIT}
                             '
                         '''
                     }
