@@ -1,6 +1,5 @@
 pipeline {
     agent any
-
     environment {
         VENV_DIR = 'venv'
         LOCAL_DB_NAME = 'meatshop'
@@ -8,12 +7,10 @@ pipeline {
         LOCAL_DB_USER = 'root'
         LOCAL_DB_PASSWORD = credentials('LOCAL_DB_PASSWORD')
         LOCAL_DB_PORT = '3306'
-        SONAR_SCANNER_HOME = tool 'sonarqube-scanner'
-        GITHUB_TOKEN = credentials('git_hub_token')
+        SONAR_SCANNER_HOME = tool 'sonarqube-scanner';
+        GITHUB_TOKEN = credentials('git_hub_token'); 
     }
-
     stages {
-
         stage('Installing Dependencies') {
             steps {
                 echo 'Installing Python dependencies...'
@@ -28,10 +25,9 @@ pipeline {
                 '''
             }
         }
-
         stage('Audit Dependencies') {
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
                     sh '''
                         . venv/bin/activate
                         pip-audit > pip-audit-report.txt
@@ -39,7 +35,6 @@ pipeline {
                 }
             }
         }
-
         stage('Start MySQL') {
             steps {
                 sh '''
@@ -59,7 +54,6 @@ pipeline {
                 '''
             }
         }
-
         stage('Running Tests') {
             steps {
                 echo 'Running tests...'
@@ -76,7 +70,6 @@ pipeline {
                 '''
             }
         }
-
         stage('Code Coverage') {
             steps {
                 echo 'Generating code coverage report...'
@@ -103,17 +96,16 @@ pipeline {
                 ])
             }
         }
-
         stage('SAST') {
             steps {
                 timeout(time: 120, unit: 'SECONDS') {
                     echo 'Running static code analysis....'
                     withSonarQubeEnv('SonarQube-backend') {
                         sh '''
-                            $SONAR_SCANNER_HOME/bin/sonar-scanner \
-                                -Dsonar.projectKey=g-back \
-                                -Dsonar.sources=core/,tags/,likes/,meatshop/,shop/,Dockerfile/ \
-                                -Dsonar.python.coverage.reportPaths=coverage.xml 
+                        $SONAR_SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectKey=g-back \
+                            -Dsonar.sources=core/,tags/,likes/,meatshop/,shop/,Dockerfile/ \
+                            -Dsonar.python.coverage.reportPaths=coverage.xml 
                         '''
                     }
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -122,11 +114,10 @@ pipeline {
                 }
             }
         }
-
-        stage('Building Docker Image') {
-            steps {
+         stage('Building Docke Image'){
+            steps{
                 script {
-                    echo 'Building Docker image...'
+                    echo 'building docker image....'
                     sh '''
                         docker build -t eladwy/backend:$GIT_COMMIT .
                     '''
@@ -134,23 +125,24 @@ pipeline {
             }
         }
 
-        stage('Trivy Vulnerability Scanner') {
+        stage('Trivy Vulnarability Scanner'){
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh '''
-                        trivy image eladwy/backend:$GIT_COMMIT \
-                            --severity LOW,MEDIUM \
-                            --exit-code 0 \
-                            --quiet \
-                            --format json -o trivy-success.json
-
-                        trivy image eladwy/backend:$GIT_COMMIT \
-                            --severity HIGH,CRITICAL \
-                            --exit-code 1 \
-                            --quiet \
-                            --format json -o trivy-fail.json
-                    '''
-                }
+                       sh '''
+                            trivy image eladwy/backend:$GIT_COMMIT \
+                                    --severity LOW,MEDIUM \
+                                    --exit-code 0 \
+                                    --quiet \
+                                    --format json -o trivy-success.json
+                                
+                            
+                                trivy image eladwy/backend:$GIT_COMMIT \
+                                    --severity HIGH,CRITICAL \
+                                    --exit-code 1 \
+                                    --quiet \
+                                    --format json -o trivy-fail.json
+                        '''
+                    }
             }
             post {
                 always {
@@ -174,49 +166,39 @@ pipeline {
                 }
             }
         }
-
-        stage('Push Docker Image') {
-            steps {
-                withDockerRegistry(credentialsId: 'docker-hub', url: "https://index.docker.io/v1/") {
-                    echo 'Pushing Docker image...'
-                    sh '''
-                        docker push eladwy/backend:$GIT_COMMIT
-                    '''
+        stage('Push Docker Image'){
+            steps{
+                    withDockerRegistry(credentialsId: 'docker-hub', url: "https://index.docker.io/v1/") {
+                        echo 'pushing docker image...'
+                        sh '''
+                            docker push eladwy/backend:$GIT_COMMIT
+                        '''
+                    }
                 }
-            }
         }
-
-        stage('Deploy to AWS') {
-            when {
+         stage('Deploy to aws'){
+            when{
                 branch 'features'
             }
             steps {
                 script {
                     sshagent(['aws-dev-deploy']) {
-                        sh """
-                            ssh -o StrictHostKeyChecking=no ubuntu@157.175.65.83 '
+                        sh'''
+                            ssh -o StrictHostKeyChecking=no ubuntu@157.175.65.83'
                                 sudo docker image prune -a -f
                                 sudo docker network create meatshop-net
                                 sudo docker rm -f $(sudo docker ps -q)
-
                                 if docker ps -a | grep -q "mymysql"; then
                                     echo "Container Found, Stopping..."
                                     docker stop "mymysql" && docker rm "mymysql"
                                     echo "Container stopped and removed"
                                 fi
-
-                                docker run -d --name mymysql --network meatshop-net \
-                                    -e MYSQL_ROOT_PASSWORD=mypass \
-                                    -e MYSQL_DATABASE=meatshop \
-                                    -p 3306:3306 \
-                                    -v mysql_data:/var/lib/mysql mysql
-
+                                docker run -d --name mymysql --network meatshop-net -e MYSQL_ROOT_PASSWORD=mypass -e MYSQL_DATABASE=meatshop -p 3306:3306 -v mysql_data:/var/lib/mysql mysql
                                 if sudo docker ps -a | grep -q "backend"; then
                                     echo "Container Found, Stopping..."
                                     sudo docker stop "backend" && sudo docker rm "backend"
                                     echo "Container stopped and removed"
                                 fi
-
                                 sudo docker run -d \
                                     --network meatshop-net \
                                     -e DB_NAME=${LOCAL_DB_NAME} \
@@ -226,25 +208,27 @@ pipeline {
                                     -e LOCAL_DB_PASSWORD=mypass \
                                     -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
                             '
-                        """
+                        '''
                     }
                 }
             }
         }
-
         stage('K8S Update Image Tag') {
             when {
                 branch 'PR*'
             }
             steps {
                 script {
-                    echo 'Updating image tag in K8s...'
+                    echo 'updating image tag in k8s...'
                     sh 'git clone -b main https://github.com/abdelrahman-eladwy/meatshop-k8s.git'
                     dir('meatshop-k8s') {
                         sh '''
+                            echo "12345"
                             git checkout main
                             git checkout -b feature$BUILD_ID
                             sed -E -i "s-(eladwy|borhom11)/backend:.*-eladwy/backend:$GIT_COMMIT-g" backend/deployment.yaml
+                            cat frontend/deployment.yaml
+
                             git config --global user.email "abdoahmed32522@gmail.com"
                             git remote set-url origin https://$GITHUB_TOKEN@github.com/abdelrahman-eladwy/meatshop-k8s.git
                             git add .
@@ -282,6 +266,7 @@ pipeline {
             }
             steps {
                 sh '''
+                    echo Trigger
                     chmod 777 $(pwd)
                     docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
                         -t http://ec2-157-175-65-83.me-south-1.compute.amazonaws.com/schema/?format=json \
@@ -294,8 +279,11 @@ pipeline {
                 '''
             }
         }
-    }
 
+
+
+
+    }
     post {
         always {
             script {
@@ -304,15 +292,13 @@ pipeline {
                 }
             }
         }
-
+    
         success {
             echo 'Tests passed! The build is ready for deployment.'
         }
-
         failure {
             echo 'Tests failed! Please check the logs for details.'
         }
-
         cleanup {
             echo 'Cleaning up the virtual environment...'
             sh '''
