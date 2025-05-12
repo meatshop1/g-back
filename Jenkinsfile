@@ -289,6 +289,14 @@ pipeline {
 
     }
     post {
+        always {
+            script {
+                if (fileExists('meatshop-k8s')) {
+                    sh 'rm -rf meatshop-k8s'
+                }
+            }
+        }
+    
         success {
             echo 'Tests passed! The build is ready for deployment.'
         }
