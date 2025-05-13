@@ -128,24 +128,21 @@ pipeline {
         stage('Trivy Vulnarability Scanner'){
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                       sh '''
-                            trivy image eladwy/backend:$GIT_COMMIT \
-                                    --severity LOW,MEDIUM \
-                                    --exit-code 0 \
-                                    --quiet \
-                                    --format json -o trivy-success.json
-                                
+                    sh '''
+                        trivy image eladwy/backend:$GIT_COMMIT \
+                                --severity LOW,MEDIUM \
+                                --exit-code 0 \
+                                --quiet \
+                                --format json -o trivy-success.json
                             
-                                trivy image eladwy/backend:$GIT_COMMIT \
-                                    --severity HIGH,CRITICAL \
-                                    --exit-code 1 \
-                                    --quiet \
-                                    --format json -o trivy-fail.json
-                        '''
-                    }
-            }
-            post {
-                always {
+                        
+                            trivy image eladwy/backend:$GIT_COMMIT \
+                                --severity HIGH,CRITICAL \
+                                --exit-code 1 \
+                                --quiet \
+                                --format json -o trivy-fail.json
+                    '''
+                    
                     sh '''
                         trivy convert \
                             --format template --template "@/usr/local/share/trivy/templates/html.tpl" \
@@ -185,7 +182,7 @@ pipeline {
                     def gitCommit = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                     sshagent(['aws-dev-deploy']) {
                         sh '''
-                            ssh -o StrictHostKeyChecking=no ubuntu@157.175.65.83 "
+                            ssh -o StrictHostKeyChecking=no ubuntu@157.175.177.0 "
                                 sudo docker image prune -a -f
                                 sudo docker network create meatshop-net || true
                                 # Only remove containers if they exist
@@ -271,7 +268,7 @@ pipeline {
                     echo "Trigger"
                     chmod 777 $(pwd)
                     docker run -v $(pwd):/zap/wrk/:rw -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
-                        -t http://157.175.65.83/schema/?format=json \
+                        -t http://157.175.177.0/schema/?format=json \
                         -r zap_report.html \
                         -f openapi \
                         -w zap_report.md \
