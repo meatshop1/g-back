@@ -326,7 +326,7 @@ pipeline {
             echo 'Tests passed! The build is ready for deployment.'
         }
         failure {
-            echo 'Tests failed! Please check the logs for details.'
+            echo 'Tests failed! Please check the logs for details..'
         }
         cleanup {
             echo 'Cleaning up the virtual environment...'
