@@ -128,21 +128,24 @@ pipeline {
         stage('Trivy Vulnarability Scanner'){
             steps {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    sh '''
-                        trivy image eladwy/backend:$GIT_COMMIT \
-                                --severity LOW,MEDIUM \
-                                --exit-code 0 \
-                                --quiet \
-                                --format json -o trivy-success.json
-                            
-                        
+                       sh '''
                             trivy image eladwy/backend:$GIT_COMMIT \
-                                --severity HIGH,CRITICAL \
-                                --exit-code 1 \
-                                --quiet \
-                                --format json -o trivy-fail.json
-                    '''
-                    
+                                    --severity LOW,MEDIUM \
+                                    --exit-code 0 \
+                                    --quiet \
+                                    --format json -o trivy-success.json
+                                
+                            
+                                trivy image eladwy/backend:$GIT_COMMIT \
+                                    --severity HIGH,CRITICAL \
+                                    --exit-code 1 \
+                                    --quiet \
+                                    --format json -o trivy-fail.json
+                        '''
+                    }
+            }
+            post {
+                always {
                     sh '''
                         trivy convert \
                             --format template --template "@/usr/local/share/trivy/templates/html.tpl" \
