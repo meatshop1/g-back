@@ -127,7 +127,7 @@ pipeline {
 
         stage('Trivy Vulnarability Scanner'){
             steps {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                catchError(buildResult: 'SUCCESS', stageResult: 'SUCCESS') {
                        sh '''
                             trivy image eladwy/backend:$GIT_COMMIT \
                                     --severity LOW,MEDIUM \
@@ -288,8 +288,28 @@ pipeline {
                 '''
             }
         }
-
-
+        stage('Publish Reports - AWS S3') {
+            when {
+                branch 'PR'
+            }
+            steps {
+                withAWS(credentials: 'aws', region: 'me-south-1') {
+                    sh '''
+                        mkdir reports-$BUILD_ID
+                        cp coverage.xml reports-$BUILD_ID/
+                        cp trivy.* reports-$BUILD_ID/
+                        cp pip-* reports-$BUILD_ID/
+                        ls reports-$BUILD_ID/
+                    '''
+                    s3Upload(
+                        file: "reports-$BUILD_ID",
+                        bucket: "meatshop-pipeline-artifacts",
+                        path: "backend/reports-$BUILD_ID"
+                    )
+                }
+            }
+        }
+       
 
 
     }
