@@ -208,7 +208,7 @@ pipeline {
                                     echo \\"Container stopped and removed\\"
                                 fi
                                 
-                                sudo docker run -d --network meatshop-net -e DJANGO_SETTINGS_MODULE=meatshop.settings -e LOCAL_DB_NAME=meatshop -e LOCAL_DB_PORT=3306 -e LOCAL_DB_HOST=mymysql -e LOCAL_DB_USER=root -e LOCAL_DB_PASSWORD=mypass -e ALLOWED_HOSTS=* -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
+                                sudo docker run -d --network meatshop-net DJANGO_SETTINGS_MODULE=meatshop.settings.dev -e LOCAL_DB_NAME=meatshop -e LOCAL_DB_PORT=3306 -e LOCAL_DB_HOST=mymysql -e LOCAL_DB_USER=root -e LOCAL_DB_PASSWORD=mypass -p 80:8000 --name backend eladwy/backend:$GIT_COMMIT
                             "
                         '''
                     }
