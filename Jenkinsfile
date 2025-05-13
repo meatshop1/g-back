@@ -49,7 +49,7 @@ pipeline {
                         -e MYSQL_PASSWORD=${LOCAL_DB_PASSWORD} \
                         -p 3306:3306 -d mysql:8.0
 
-                    echo "Waiting for MySQL to be ready..."
+                    echo "Waiting for MySQL to be ready...."
                     sleep 60
                 '''
             }
